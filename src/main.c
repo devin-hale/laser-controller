@@ -14,7 +14,7 @@ LL_GPIO_SetPinSpeed(GPIOC, LL_GPIO_PIN_13, LL_GPIO_SPEED_FREQ_HIGH);
 while (1)
   {
     LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
-    int i = 200000;/* About 1/4 second delay */
+    int i = 800000;/* About 1/4 second delay */
     while (i-- > 0) {
         asm("nop");/* This stops it optimising code out */
     }
