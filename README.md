@@ -15,3 +15,10 @@ The main learning goal of this project is the following
 - A Raspberry Pi W Zero 2 will be wired to an RF transmitter, and connect to my nintendo switch controller via bluetooth
     - Will receive inputs via the controller, and transmit to the laser pointer's RF receiver
     - Unnecessarily convoluted but seems cool to play with
+
+### How to build
+```
+$ cmake -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake -B build
+$ cd build
+$ make
+```
