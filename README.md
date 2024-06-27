@@ -4,6 +4,7 @@ Radio controlled laser pointer using the STM32F103C8T6
 ## Overview
 The main learning goal of this project is the following
 1. Learn about the STM32 cpu by doing a project from only the arm gnu toolchain and cmake
+    (project template from https://github.com/kxygk/bluepill?tab=readme-ov-file)
 2. Learn about RF communication protocols
 
 ### The scope of the project will encompass the following:
