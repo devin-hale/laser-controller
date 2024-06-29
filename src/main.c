@@ -1,22 +1,25 @@
 
-#include "stm32f1xx_ll_bus.h"
-#include "stm32f1xx_ll_rcc.h"
-#include "stm32f1xx_ll_gpio.h"
+#include "stm32f103xb.h"
 
-int main(void)
-{
+void systick_init(void) {
+  static int ms = 8000;
+  SysTick->LOAD = ms - 1;
+  SysTick->VAL = 0;
+  SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk;
+}
 
-LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOC);
+void delay(int ms) {
+  for (int i = 0; i < ms; i++) {
+    while (!(SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk))
+      ;
+  }
+}
 
-LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_13, LL_GPIO_MODE_OUTPUT);
-LL_GPIO_SetPinSpeed(GPIOC, LL_GPIO_PIN_13, LL_GPIO_SPEED_FREQ_HIGH);
+int main(void) {
+  systick_init();
 
-while (1)
-  {
-    LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
-    int i = 800000;/* About 1/4 second delay */
-    while (i-- > 0) {
-        asm("nop");/* This stops it optimising code out */
-    }
+  while (1) {
+    GPIOC->ODR ^= GPIO_ODR_ODR13;
+    delay(1000);
   }
 }
