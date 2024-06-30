@@ -4,9 +4,8 @@
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_rcc.h"
 #include "stm32f1xx_ll_tim.h"
-#include "stm32f1xx_ll_utils.h"
-#include "system_stm32f1xx.h"
 #include "stm32f1xx_ll_system.h"
+#include <stdint.h>
 
 void systick_init(void) {
   static int ms = 72000;
@@ -22,11 +21,15 @@ void delay(int ms) {
 }
 
 void gpio_init(void) {
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
+	LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
 
     LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_0, LL_GPIO_MODE_ALTERNATE);
     LL_GPIO_SetPinSpeed(GPIOA, LL_GPIO_PIN_0, LL_GPIO_SPEED_FREQ_HIGH);
     LL_GPIO_SetPinOutputType(GPIOA, LL_GPIO_PIN_0, LL_GPIO_OUTPUT_PUSHPULL);
+
+	LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_1, LL_GPIO_MODE_ALTERNATE);
+    LL_GPIO_SetPinSpeed(GPIOA, LL_GPIO_PIN_1, LL_GPIO_SPEED_FREQ_HIGH);
+    LL_GPIO_SetPinOutputType(GPIOA, LL_GPIO_PIN_1, LL_GPIO_OUTPUT_PUSHPULL);
 }
 
 void pwm_init(void) {
@@ -35,9 +38,16 @@ void pwm_init(void) {
     LL_TIM_SetPrescaler(TIM2, 72 - 1); // Prescaler to get 1 MHz timer clock (72 MHz / 72)
     LL_TIM_SetAutoReload(TIM2, 20000 - 1); // Auto-reload for 20 ms period (50 Hz)
 
+	// Channel 1
     LL_TIM_OC_SetMode(TIM2, LL_TIM_CHANNEL_CH1, LL_TIM_OCMODE_PWM1);
     LL_TIM_OC_EnablePreload(TIM2, LL_TIM_CHANNEL_CH1);
 	LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH1);
+
+	// Channel 2
+	LL_TIM_OC_SetMode(TIM2, LL_TIM_CHANNEL_CH2, LL_TIM_OCMODE_PWM1);
+    LL_TIM_OC_EnablePreload(TIM2, LL_TIM_CHANNEL_CH2);
+	LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH2);
+
 
     LL_TIM_EnableARRPreload(TIM2);
     LL_TIM_EnableCounter(TIM2);
@@ -67,8 +77,17 @@ void SystemClock_Config(void) {
     LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_1);
     
 }
-void SetServoPosition(int change) {
-	LL_TIM_OC_SetCompareCH1(TIM2, change);
+void SetServoPosition(int change, uint8_t channel) {
+	switch(channel){
+		case 1:
+			LL_TIM_OC_SetCompareCH1(TIM2, change);
+			break;
+		case 2:
+			LL_TIM_OC_SetCompareCH2(TIM2, change);
+			break;
+		default:
+			break;
+	}
 }
 
 int main(void) {
@@ -77,17 +96,26 @@ int main(void) {
   gpio_init();
   pwm_init();
 
-  int current_pos = 1500;
+  int current_pos_1 = 1500;
+  int current_pos_2 = 1500;
   int posmin = 500;
   int posmax = 2500;
 
   while (1) {
-	if(current_pos > posmax){
-		current_pos = posmin;
+	if(current_pos_1 > posmax){
+		current_pos_1 = posmin;
 	} else {
-		current_pos += 200;
+		current_pos_1 += 200;
 	}
-	SetServoPosition(current_pos);
+
+	if(current_pos_2 < posmin){
+		current_pos_2 = posmax;
+	} else {
+		current_pos_2 -= 200;
+	}
+	SetServoPosition(current_pos_1, 1);
+	delay(200);
+	SetServoPosition(current_pos_2, 2);
 	delay(200);
   }
 }
