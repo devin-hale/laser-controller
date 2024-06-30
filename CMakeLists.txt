@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.0)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-project(blinky)
+project(rf_laser)
 
 set(ELF ${PROJECT_NAME}.elf)
 
