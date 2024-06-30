@@ -1,8 +1,15 @@
 
 #include "stm32f103xb.h"
+#include "stm32f1xx_ll_bus.h"
+#include "stm32f1xx_ll_gpio.h"
+#include "stm32f1xx_ll_rcc.h"
+#include "stm32f1xx_ll_tim.h"
+#include "stm32f1xx_ll_utils.h"
+#include "system_stm32f1xx.h"
+#include "stm32f1xx_ll_system.h"
 
 void systick_init(void) {
-  static int ms = 8000;
+  static int ms = 72000;
   SysTick->LOAD = ms - 1;
   SysTick->VAL = 0;
   SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk;
@@ -10,16 +17,77 @@ void systick_init(void) {
 
 void delay(int ms) {
   for (int i = 0; i < ms; i++) {
-    while (!(SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk))
-      ;
+    while (!(SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk));
   }
+}
+
+void gpio_init(void) {
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
+
+    LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_0, LL_GPIO_MODE_ALTERNATE);
+    LL_GPIO_SetPinSpeed(GPIOA, LL_GPIO_PIN_0, LL_GPIO_SPEED_FREQ_HIGH);
+    LL_GPIO_SetPinOutputType(GPIOA, LL_GPIO_PIN_0, LL_GPIO_OUTPUT_PUSHPULL);
+}
+
+void pwm_init(void) {
+  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2);
+
+    LL_TIM_SetPrescaler(TIM2, 72 - 1); // Prescaler to get 1 MHz timer clock (72 MHz / 72)
+    LL_TIM_SetAutoReload(TIM2, 20000 - 1); // Auto-reload for 20 ms period (50 Hz)
+
+    LL_TIM_OC_SetMode(TIM2, LL_TIM_CHANNEL_CH1, LL_TIM_OCMODE_PWM1);
+    LL_TIM_OC_EnablePreload(TIM2, LL_TIM_CHANNEL_CH1);
+	LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH1);
+
+    LL_TIM_EnableARRPreload(TIM2);
+    LL_TIM_EnableCounter(TIM2);
+    LL_TIM_GenerateEvent_UPDATE(TIM2);
+}
+
+void SystemClock_Config(void) {
+  /* Set FLASH latency */
+    LL_FLASH_SetLatency(LL_FLASH_LATENCY_2);
+    
+    /* Enable HSE */
+    LL_RCC_HSE_Enable();
+    while (LL_RCC_HSE_IsReady() != 1);
+    
+    /* Configure and enable PLL */
+    LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE_DIV_1, LL_RCC_PLL_MUL_9);
+    LL_RCC_PLL_Enable();
+    while (LL_RCC_PLL_IsReady() != 1);
+    
+    /* Set the SYSCLK source to PLL */
+    LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL);
+    while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL);
+    
+    /* Set AHB, APB1, and APB2 prescalers */
+    LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_1);
+    LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_2);
+    LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_1);
+    
+}
+void SetServoPosition(int change) {
+	LL_TIM_OC_SetCompareCH1(TIM2, change);
 }
 
 int main(void) {
   systick_init();
+  SystemClock_Config();
+  gpio_init();
+  pwm_init();
+
+  int current_pos = 1500;
+  int posmin = 500;
+  int posmax = 2500;
 
   while (1) {
-    GPIOC->ODR ^= GPIO_ODR_ODR13;
-    delay(1000);
+	if(current_pos > posmax){
+		current_pos = posmin;
+	} else {
+		current_pos += 200;
+	}
+	SetServoPosition(current_pos);
+	delay(200);
   }
 }
