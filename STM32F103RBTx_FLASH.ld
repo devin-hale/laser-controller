@@ -16,4 +16,19 @@ SECTIONS
         *(.text*)
         . = ALIGN(4);
     } >rom
+	.data : {
+        . = ALIGN(4);
+        _sdata = .;
+        *(.data*)
+        . = ALIGN(4);
+        _edata = .;
+    } >ram AT>rom
+    .bss : {
+        . = ALIGN(4);
+        _sbss = .;
+        *(.bss*)
+        *(COMMON)
+        . = ALIGN(4);
+        _ebss = .;
+    } >ram
 }
