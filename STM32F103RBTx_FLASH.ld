@@ -19,6 +19,7 @@ SECTIONS
 	.data : {
         . = ALIGN(4);
         _sdata = .;
+		_la_data = LOADADDR(.data); /* Load address of .data in FLASH */
         *(.data*)
         . = ALIGN(4);
         _edata = .;
