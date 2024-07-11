@@ -105,7 +105,7 @@ void SystemClock_Config(void) {
 #define POSMIN 500
 #define POSMAX 2500
 
-void SetServoPosition(int change, uint8_t channel) {
+void set_servo(int change, uint8_t channel) {
   switch (channel) {
   case 1:
     LL_TIM_OC_SetCompareCH1(TIM2, change);
@@ -125,7 +125,7 @@ void pan_clockwise(void) {
   if (current_pan < POSMIN) {
     current_pan = POSMIN;
   }
-  SetServoPosition(current_pan, 1);
+  set_servo(current_pan, 1);
   delay(10);
   LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
 }
@@ -135,7 +135,7 @@ void pan_counterclockwise(void) {
   if (current_pan > POSMAX) {
     current_pan = POSMAX;
   }
-  SetServoPosition(current_pan, 1);
+  set_servo(current_pan, 1);
   delay(10);
   LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
 }
@@ -147,7 +147,7 @@ int main(void) {
   gpio_init();
   pwm_init();
 
-  SetServoPosition(2500, 1);
+  set_servo(2500, 1);
   volatile static uint8_t gpio14_state = 0;
   volatile static uint8_t gpio15_state = 0;
   while (1) {
