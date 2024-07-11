@@ -35,21 +35,20 @@ void gpio_init(void) {
   LL_GPIO_SetPinSpeed(GPIOA, LL_GPIO_PIN_1, LL_GPIO_SPEED_FREQ_HIGH);
   LL_GPIO_SetPinOutputType(GPIOA, LL_GPIO_PIN_1, LL_GPIO_OUTPUT_PUSHPULL);
 
-  // PC13
+  // PC13 Onboard LED
   LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_13, LL_GPIO_MODE_OUTPUT);
   LL_GPIO_SetPinSpeed(GPIOC, LL_GPIO_PIN_13, LL_GPIO_SPEED_FREQ_HIGH);
   GPIOC->ODR |= GPIO_ODR_ODR13;
 
-  // PC14
+  // PC14 Pan Clockwise Button
   LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_14, LL_GPIO_MODE_INPUT);
   LL_GPIO_SetPinPull(GPIOC, LL_GPIO_PIN_14, LL_GPIO_PULL_DOWN);
   LL_GPIO_SetPinSpeed(GPIOC, LL_GPIO_PIN_14, LL_GPIO_SPEED_FREQ_HIGH);
 
-  // PC15
-  LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_15, LL_GPIO_MODE_OUTPUT);
-
-  // Radio Receiver
-  LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_1, LL_GPIO_MODE_INPUT);
+  // PC15 Pan Counter clockwise button
+  LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_15, LL_GPIO_MODE_INPUT);
+  LL_GPIO_SetPinPull(GPIOC, LL_GPIO_PIN_15, LL_GPIO_PULL_DOWN);
+  LL_GPIO_SetPinSpeed(GPIOC, LL_GPIO_PIN_15, LL_GPIO_SPEED_FREQ_HIGH);
 }
 
 void pwm_init(void) {
@@ -100,11 +99,11 @@ void SystemClock_Config(void) {
   LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_1);
 }
 
-#define INCREMENT_AMT 200
+/*---- Servo Logic ----*/
+
+#define INCREMENT_AMT 50
 #define POSMIN 500
 #define POSMAX 2500
-
-// static int current_pos_tilt = 1500;
 
 void SetServoPosition(int change, uint8_t channel) {
   switch (channel) {
@@ -119,35 +118,46 @@ void SetServoPosition(int change, uint8_t channel) {
   }
 }
 
-void Move_Left(void) {
-  static volatile uint32_t current = 1500;
+volatile static int current_pan = 2500;
+void pan_clockwise(void) {
   LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
-  volatile int new_pos = current - INCREMENT_AMT;
-  if (new_pos < POSMIN) {
-    new_pos = (uint32_t)POSMIN;
+  current_pan -= INCREMENT_AMT;
+  if (current_pan < POSMIN) {
+    current_pan = POSMIN;
   }
-  current = new_pos;
-  SetServoPosition(current, 1);
-  delay(200);
+  SetServoPosition(current_pan, 1);
+  delay(10);
+  LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
+}
+void pan_counterclockwise(void) {
+  LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
+  current_pan += INCREMENT_AMT;
+  if (current_pan > POSMAX) {
+    current_pan = POSMAX;
+  }
+  SetServoPosition(current_pan, 1);
+  delay(10);
   LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
 }
 
+// --------
 int main(void) {
   systick_init();
   SystemClock_Config();
   gpio_init();
   pwm_init();
 
-  //uint8_t gpio14_state = 0;
+  SetServoPosition(2500, 1);
+  volatile static uint8_t gpio14_state = 0;
+  volatile static uint8_t gpio15_state = 0;
   while (1) {
-	  /*gpio14_state = LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_14);
+    gpio14_state = LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_14);
+    gpio15_state = LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_15);
     if (gpio14_state == 1) {
-      Move_Left();
+      pan_clockwise();
     }
- */
-	  SetServoPosition(500, 1);
-	  delay(2000);
-	  SetServoPosition(2500, 1);
-	  delay(2000);
-      }
+    if (gpio15_state == 1) {
+      pan_counterclockwise();
+    }
+  }
 }
