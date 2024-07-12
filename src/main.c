@@ -1,6 +1,7 @@
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_gpio.h"
+#include "stm32f1xx_ll_i2c.h"
 #include "stm32f1xx_ll_rcc.h"
 #include "stm32f1xx_ll_system.h"
 #include "stm32f1xx_ll_tim.h"
@@ -18,6 +19,21 @@ void delay(int ms) {
     while (!(SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk))
       ;
   }
+}
+void i2c_init(void) {
+  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C1);
+  LL_I2C_InitTypeDef i2c_init;
+  LL_I2C_StructInit(&i2c_init);
+  i2c_init.PeripheralMode = LL_I2C_MODE_I2C;
+  i2c_init.ClockSpeed =
+      LL_I2C_CLOCK_SPEED_STANDARD_MODE;
+  i2c_init.DutyCycle = LL_I2C_DUTYCYCLE_2;
+  i2c_init.OwnAddress1 = 0;
+  i2c_init.TypeAcknowledge = LL_I2C_ACK;
+  i2c_init.OwnAddrSize = LL_I2C_OWNADDRESS1_7BIT;
+  LL_I2C_Init(I2C1, &i2c_init);
+
+  LL_I2C_Enable(I2C1);
 }
 
 void gpio_init(void) {
@@ -49,6 +65,17 @@ void gpio_init(void) {
   LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_15, LL_GPIO_MODE_INPUT);
   LL_GPIO_SetPinPull(GPIOC, LL_GPIO_PIN_15, LL_GPIO_PULL_DOWN);
   LL_GPIO_SetPinSpeed(GPIOC, LL_GPIO_PIN_15, LL_GPIO_SPEED_FREQ_HIGH);
+
+  // I2C Display
+  // Configure I2C SDA and SCL pins
+  LL_GPIO_InitTypeDef gpio_init;
+  LL_GPIO_StructInit(&gpio_init);
+  gpio_init.Pin = LL_GPIO_PIN_6 | LL_GPIO_PIN_7; // PB6=SCL, PB7=SDA
+  gpio_init.Mode = LL_GPIO_MODE_ALTERNATE;
+  gpio_init.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+  gpio_init.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
+  gpio_init.Pull = LL_GPIO_PULL_UP;
+  LL_GPIO_Init(GPIOB, &gpio_init);
 }
 
 void pwm_init(void) {
@@ -146,6 +173,7 @@ int main(void) {
   SystemClock_Config();
   gpio_init();
   pwm_init();
+  i2c_init();
 
   set_servo(2500, 1);
   volatile static uint8_t gpio14_state = 0;
