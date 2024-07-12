@@ -18,7 +18,9 @@ add_library(ll
   src/stm32f1xx_ll_dma.c
   src/stm32f1xx_ll_dac.c
   src/stm32f1xx_ll_crc.c
-  src/stm32f1xx_ll_adc.c)
+  src/stm32f1xx_ll_adc.c
+  CMSIS/Device/ST/STM32F1xx/Source/Templates/system_stm32f1xx.c
+  )
 
 target_include_directories(ll PUBLIC inc)
 
