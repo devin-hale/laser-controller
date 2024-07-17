@@ -154,21 +154,6 @@ void ErrorFlash(void) {
   delay(50);
 }
 
-void Test_Write(uint8_t address) {
-  delay(100);
-  LL_I2C_GenerateStartCondition(I2C1);
-  while (!LL_I2C_IsActiveFlag_SB(I2C1)) {
-  };
-
-  LL_I2C_TransmitData8(I2C1, address << 1);
-  while (!LL_I2C_IsActiveFlag_ADDR(I2C1)) {
-    if (LL_I2C_IsActiveFlag_AF(I2C1)) {
-      ErrorFlash();
-    }
-  };
-  LL_I2C_GenerateStopCondition(I2C1);
-}
-
 void I2C_Write(uint8_t address, uint8_t *data, uint8_t size) {
 
   LL_I2C_GenerateStartCondition(I2C1);
@@ -179,8 +164,7 @@ void I2C_Write(uint8_t address, uint8_t *data, uint8_t size) {
   // uint8_t address_with_write_bit = (address << 1);
   LL_I2C_TransmitData8(I2C1, address << 1);
   while (!LL_I2C_IsActiveFlag_ADDR(I2C1)) {
-    if (LL_I2C_IsActiveFlag_AF(I2C1)) {
-      ErrorFlash();
+    while (LL_I2C_IsActiveFlag_AF(I2C1)) {
     }
   };
   LL_I2C_ClearFlag_ADDR(I2C1);
@@ -194,7 +178,7 @@ void I2C_Write(uint8_t address, uint8_t *data, uint8_t size) {
 
   // Wait until the transfer is complete (BTF flag should be set)
   while (!LL_I2C_IsActiveFlag_BTF(I2C1)) {
-    ErrorFlash();
+	delay(5);
   }
 
   LL_I2C_GenerateStopCondition(I2C1);
@@ -219,15 +203,15 @@ void LCD_SendData(uint8_t data) {
 }
 
 void LCD_Init(void) {
-  delay(50); // Wait for LCD to power up
+  delay(1000); // Wait for LCD to power up
 
   // Initialize LCD in 4-bit mode
   LCD_WriteNibble(0x30, LCD_COMMAND);
-  delay(5);
+  delay(50);
   LCD_WriteNibble(0x30, LCD_COMMAND);
-  delay(1);
+  delay(10);
   LCD_WriteNibble(0x30, LCD_COMMAND);
-  delay(1);
+  delay(10);
   LCD_WriteNibble(0x20, LCD_COMMAND); // Set to 4-bit mode
 
   //// Function Set
@@ -271,9 +255,11 @@ int main(void) {
   i2c_init();
   LCD_Init();
 
-  LCD_SendString("pee pee");
+  LCD_SendString("Test 1");
   LCD_SetCursor(0, 1);
-  LCD_SendString("poo poo");
+  LCD_SendString("Test 2");
+  LCD_SetCursor(0, 0);
+  LCD_SendString("Test 3");
 
   //set_servo(POSMIN, 1);
   volatile static uint8_t gpio14_state = 0;
