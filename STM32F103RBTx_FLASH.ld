@@ -32,4 +32,10 @@ SECTIONS
         . = ALIGN(4);
         _ebss = .;
     } >ram
+	.stack (NOLOAD) :
+    {
+        . = ALIGN(8);
+        _estack = .;
+        . += 4K;  /* Allocate 4K for stack */
+    } >ram
 }
