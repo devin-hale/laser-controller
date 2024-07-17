@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.12)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(rf_laser)
 
@@ -9,9 +9,14 @@ set(STARTUP_FILE "startup_stm32f103xb.c")
 
 add_subdirectory(stm32f1-ll)
 
-add_executable(${ELF} ${STARTUP_FILE} src/main.c)
+add_executable(${ELF}
+	${STARTUP_FILE}
+	src/main.c
+	src/servo.c
+	src/utils.c
+)
 
-target_link_libraries(${ELF} ll )
+target_link_libraries(${ELF} ll)
 target_include_directories(${ELF} PUBLIC inc)
 
 set_target_properties(

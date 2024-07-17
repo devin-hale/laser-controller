@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SERVO_H
+#define SERVO_H
 
 #include "stm32f1xx_ll_gpio.h"
 #include <stdint.h>
@@ -19,3 +20,5 @@ typedef enum { sc_pan, sc_tilt } servo_channel;
 void set_servo_position(int change, servo_channel channel);
 void pan_clockwise(void);
 void pan_counterclockwise(void);
+
+#endif

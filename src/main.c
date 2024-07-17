@@ -6,6 +6,7 @@
 #include "stm32f1xx_ll_system.h"
 #include "stm32f1xx_ll_tim.h"
 #include <stdint.h>
+#include "utils.h"
 
 void ErrorFlash(void);
 
@@ -14,13 +15,6 @@ void systick_init(void) {
   SysTick->LOAD = ms - 1;
   SysTick->VAL = 0;
   SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk;
-}
-
-void delay(int ms) {
-  for (int i = 0; i < ms; i++) {
-    while (!(SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk))
-      ;
-  }
 }
 void i2c_init(void) {
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C1);
@@ -143,47 +137,6 @@ void SystemClock_Config(void) {
   LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_1);
 
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_AFIO);
-}
-
-/*---- Servo Logic ----*/
-
-#define INCREMENT_AMT 50
-#define POSMIN 500
-#define POSMAX 2500
-
-void set_servo(int change, uint8_t channel) {
-  switch (channel) {
-  case 1:
-    LL_TIM_OC_SetCompareCH1(TIM2, change);
-    break;
-  case 2:
-    LL_TIM_OC_SetCompareCH2(TIM2, change);
-    break;
-  default:
-    break;
-  }
-}
-
-volatile static int current_pan = 2500;
-void pan_clockwise(void) {
-  LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
-  current_pan -= INCREMENT_AMT;
-  if (current_pan < POSMIN) {
-    current_pan = POSMIN;
-  }
-  set_servo(current_pan, 1);
-  delay(10);
-  LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
-}
-void pan_counterclockwise(void) {
-  LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
-  current_pan += INCREMENT_AMT;
-  if (current_pan > POSMAX) {
-    current_pan = POSMAX;
-  }
-  set_servo(current_pan, 1);
-  delay(10);
-  LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
 }
 
 #define LCD_ADDRESS 0x27
@@ -322,17 +275,17 @@ int main(void) {
   LCD_SetCursor(0, 1);
   LCD_SendString("poo poo");
 
-  set_servo(POSMIN, 1);
+  //set_servo(POSMIN, 1);
   volatile static uint8_t gpio14_state = 0;
   volatile static uint8_t gpio15_state = 0;
   while (1) {
     gpio14_state = LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_14);
     gpio15_state = LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_15);
     if (gpio14_state == 1) {
-      pan_clockwise();
+      //pan_clockwise();
     }
     if (gpio15_state == 1) {
-      pan_counterclockwise();
+      //pan_counterclockwise();
     }
   }
 }

@@ -1,8 +1,8 @@
-#include "main.h"
 #include "servo.h"
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_tim.h"
 #include <stdint.h>
+#include "utils.h"
 
 volatile static int current_pan_position = 1500;
 volatile static int current_tilt_position = 1500;
