@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include "utils.h"
 
-volatile static int current_pan_position = 1500;
-volatile static int current_tilt_position = 1500;
+volatile static int current_yaw = 1500;
+volatile static int current_pitch = 1500;
 
 void set_servo_position(int position, servo_channel channel) {
   switch (channel) {
@@ -22,46 +22,46 @@ void initialize(void){
 
 }
 
-int get_pan_position(void){
-	return current_pan_position;
+int get_yaw(void){
+	return current_yaw;
 }
 
-int get_tilt_position(void){
-	return current_tilt_position;
+int get_pitch(void){
+	return current_pitch;
 
 }
 
-void pan_clockwise(void) {
-  current_pan_position -= INCREMENT_AMT;
-  if (current_pan_position < POSITION_MIN) {
-    current_pan_position = POSITION_MIN;
+void yaw_clockwise(void) {
+  current_yaw -= INCREMENT_AMT;
+  if (current_yaw < POSITION_MIN) {
+    current_yaw = POSITION_MIN;
   }
-  set_servo_position(current_pan_position, sc_pan);
+  set_servo_position(current_yaw, sc_yaw);
   delay(INCREMENT_RATE);
 }
-void pan_counterclockwise(void) {
-  current_pan_position += INCREMENT_AMT;
-  if (current_pan_position > POSITION_MAX) {
-    current_pan_position = POSITION_MAX;
+void yaw_counterclockwise(void) {
+  current_yaw += INCREMENT_AMT;
+  if (current_yaw > POSITION_MAX) {
+    current_yaw = POSITION_MAX;
   }
-  set_servo_position(current_pan_position, sc_pan);
+  set_servo_position(current_yaw, sc_yaw);
   delay(INCREMENT_RATE);
 }
 
-void tilt_clockwise(void) {
-  current_pan_position -= INCREMENT_AMT;
-  if (current_pan_position < POSITION_MIN) {
-    current_pan_position = POSITION_MIN;
+void pitch_clockwise(void) {
+  current_pitch -= INCREMENT_AMT;
+  if (current_pitch < POSITION_MIN) {
+    current_pitch = POSITION_MIN;
   }
-  set_servo_position(current_pan_position, sc_tilt);
+  set_servo_position(current_pitch, sc_pitch);
   delay(10);
 }
-void tilt_counterclockwise(void) {
-  current_pan_position += INCREMENT_AMT;
-  if (current_pan_position > POSITION_MAX) {
-    current_pan_position = POSITION_MAX;
+void pitch_counterclockwise(void) {
+  current_pitch += INCREMENT_AMT;
+  if (current_pitch > POSITION_MAX) {
+    current_pitch = POSITION_MAX;
   }
-  set_servo_position(current_pan_position, sc_tilt);
+  set_servo_position(current_pitch, sc_pitch);
   delay(10);
 }
 

@@ -261,7 +261,7 @@ int main(void) {
   i2c_init();
   LCD_Init();
 
-  set_servo_position(get_pan_position(), sc_pan);
+  set_servo_position(get_yaw(), sc_yaw);
   LCD_SetCursor(0, 0);
   LCD_SendString("YAW: 90");
   LCD_SetCursor(0, 1);
@@ -275,9 +275,9 @@ int main(void) {
     gpiob13_state = LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_13);
     gpiob14_state = LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_14);
     if (gpiob13_state == 1) {
-      pan_clockwise();
+      yaw_clockwise();
       double perc =
-          (double)(get_pan_position() - POSITION_MIN) / (double)(POSITION_MAX - POSITION_MIN);
+          (double)(get_yaw() - POSITION_MIN) / (double)(POSITION_MAX - POSITION_MIN);
       int angle = (double)180 * perc;
       itos(pan_value, angle);
 
@@ -287,9 +287,9 @@ int main(void) {
       LCD_SendString(pan_value);
     }
     if (gpiob14_state == 1) {
-      pan_counterclockwise();
+      yaw_counterclockwise();
       double perc =
-          (double)(get_pan_position() - POSITION_MIN) / (double)(POSITION_MAX - POSITION_MIN);
+          (double)(get_yaw() - POSITION_MIN) / (double)(POSITION_MAX - POSITION_MIN);
       int angle = (double)180 * perc;
       itos(pan_value, angle);
       LCD_SetCursor(5, 0);
