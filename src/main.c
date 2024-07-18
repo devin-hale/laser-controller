@@ -1,3 +1,4 @@
+#include "servo.h"
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_gpio.h"
@@ -5,8 +6,8 @@
 #include "stm32f1xx_ll_rcc.h"
 #include "stm32f1xx_ll_system.h"
 #include "stm32f1xx_ll_tim.h"
-#include <stdint.h>
 #include "utils.h"
+#include <stdint.h>
 
 void ErrorFlash(void);
 
@@ -58,15 +59,20 @@ void gpio_init(void) {
   LL_GPIO_SetPinSpeed(GPIOC, LL_GPIO_PIN_13, LL_GPIO_SPEED_FREQ_HIGH);
   GPIOC->ODR |= GPIO_ODR_ODR13;
 
-  // PC14 Pan Clockwise Button
-  LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_14, LL_GPIO_MODE_INPUT);
-  LL_GPIO_SetPinPull(GPIOC, LL_GPIO_PIN_14, LL_GPIO_PULL_DOWN);
+  // PC14 Laser Pointer
+  LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_14, LL_GPIO_MODE_OUTPUT);
   LL_GPIO_SetPinSpeed(GPIOC, LL_GPIO_PIN_14, LL_GPIO_SPEED_FREQ_HIGH);
+  GPIOC->ODR |= GPIO_ODR_ODR14;
+
+  // PC14 Pan Clockwise Button
+  LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_13, LL_GPIO_MODE_INPUT);
+  LL_GPIO_SetPinPull(GPIOB, LL_GPIO_PIN_13, LL_GPIO_PULL_DOWN);
+  LL_GPIO_SetPinSpeed(GPIOB, LL_GPIO_PIN_13, LL_GPIO_SPEED_FREQ_HIGH);
 
   // PC15 Pan Counter clockwise button
-  LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_15, LL_GPIO_MODE_INPUT);
-  LL_GPIO_SetPinPull(GPIOC, LL_GPIO_PIN_15, LL_GPIO_PULL_DOWN);
-  LL_GPIO_SetPinSpeed(GPIOC, LL_GPIO_PIN_15, LL_GPIO_SPEED_FREQ_HIGH);
+  LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_14, LL_GPIO_MODE_INPUT);
+  LL_GPIO_SetPinPull(GPIOB, LL_GPIO_PIN_14, LL_GPIO_PULL_DOWN);
+  LL_GPIO_SetPinSpeed(GPIOB, LL_GPIO_PIN_14, LL_GPIO_SPEED_FREQ_HIGH);
 
   // Configure I2C SDA and SCL pins for 1602 LCD I2C Backpack
   LL_GPIO_InitTypeDef gpio_init;
@@ -178,7 +184,7 @@ void I2C_Write(uint8_t address, uint8_t *data, uint8_t size) {
 
   // Wait until the transfer is complete (BTF flag should be set)
   while (!LL_I2C_IsActiveFlag_BTF(I2C1)) {
-	delay(5);
+    delay(2);
   }
 
   LL_I2C_GenerateStopCondition(I2C1);
@@ -255,23 +261,41 @@ int main(void) {
   i2c_init();
   LCD_Init();
 
-  LCD_SendString("Test 1");
-  LCD_SetCursor(0, 1);
-  LCD_SendString("Test 2");
+  set_servo_position(get_pan_position(), sc_pan);
   LCD_SetCursor(0, 0);
-  LCD_SendString("Test 3");
+  LCD_SendString("YAW: 90");
+  LCD_SetCursor(0, 1);
+  LCD_SendString("PITCH: 90");
+  LCD_SetCursor(5, 0);
 
-  //set_servo(POSMIN, 1);
-  volatile static uint8_t gpio14_state = 0;
-  volatile static uint8_t gpio15_state = 0;
+  volatile static uint8_t gpiob13_state = 0;
+  volatile static uint8_t gpiob14_state = 0;
+  static char pan_value[255];
   while (1) {
-    gpio14_state = LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_14);
-    gpio15_state = LL_GPIO_IsInputPinSet(GPIOC, LL_GPIO_PIN_15);
-    if (gpio14_state == 1) {
-      //pan_clockwise();
+    gpiob13_state = LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_13);
+    gpiob14_state = LL_GPIO_IsInputPinSet(GPIOB, LL_GPIO_PIN_14);
+    if (gpiob13_state == 1) {
+      pan_clockwise();
+      double perc =
+          (double)(get_pan_position() - POSITION_MIN) / (double)(POSITION_MAX - POSITION_MIN);
+      int angle = (double)180 * perc;
+      itos(pan_value, angle);
+
+      LCD_SetCursor(5, 0);
+      LCD_SendString("   ");
+      LCD_SetCursor(5, 0);
+      LCD_SendString(pan_value);
     }
-    if (gpio15_state == 1) {
-      //pan_counterclockwise();
+    if (gpiob14_state == 1) {
+      pan_counterclockwise();
+      double perc =
+          (double)(get_pan_position() - POSITION_MIN) / (double)(POSITION_MAX - POSITION_MIN);
+      int angle = (double)180 * perc;
+      itos(pan_value, angle);
+      LCD_SetCursor(5, 0);
+      LCD_SendString("   ");
+      LCD_SetCursor(5, 0);
+      LCD_SendString(pan_value);
     }
   }
 }
