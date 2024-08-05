@@ -18,6 +18,7 @@ add_executable(${ELF}
 	src/i2c.c
 	src/lcd.c
 	src/sys.c
+	src/adc.c
 )
 
 target_link_libraries(${ELF} ll)

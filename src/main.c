@@ -1,7 +1,6 @@
 #include "lcd.h"
 #include "servo.h"
 #include "stm32f103xb.h"
-#include "stm32f1xx_ll_adc.h"
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_tim.h"
@@ -9,24 +8,9 @@
 #include "utils.h"
 #include "gpio.h"
 #include "i2c.h"
+#include "adc.h"
 #include <stdint.h>
 
-void adc_init(void){
-	LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC1);
-
-	LL_ADC_SetDataAlignment(ADC1, LL_ADC_DATA_ALIGN_RIGHT);
-	LL_ADC_SetSequencersScanMode(ADC1, LL_ADC_SEQ_SCAN_DISABLE);
-
-	LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_0, LL_ADC_SAMPLINGTIME_55CYCLES_5);
-	LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_1, LL_ADC_SAMPLINGTIME_55CYCLES_5);
-
-	LL_ADC_Enable(ADC1);
-
-	if (LL_ADC_IsEnabled(ADC1) == 0){
-		LL_ADC_StartCalibration(ADC1);
-        while (LL_ADC_IsCalibrationOnGoing(ADC1));
-	}
-}
 
 void pwm_init(void) {
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2);
@@ -50,20 +34,12 @@ void pwm_init(void) {
   LL_TIM_GenerateEvent_UPDATE(TIM2);
 }
 
-uint16_t Read_ADC(uint32_t channel) {
-    LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, channel);
-    LL_ADC_REG_StartConversionSWStart(ADC1);
-
-    while (LL_ADC_IsActiveFlag_EOS(ADC1) == 0){};
-	LL_ADC_ClearFlag_EOS(ADC1);
-    uint16_t adc_value = LL_ADC_REG_ReadConversionData12(ADC1);
-    return adc_value;
-}
 
 // --------
 int main(void) {
   clock_init();
   gpio_init();
+  adc_init();
   pwm_init();
   i2c_init();
   lcd_init();
