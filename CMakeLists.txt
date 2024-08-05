@@ -19,6 +19,7 @@ add_executable(${ELF}
 	src/lcd.c
 	src/sys.c
 	src/adc.c
+	src/pwm.c
 )
 
 target_link_libraries(${ELF} ll)
