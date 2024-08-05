@@ -1,3 +1,4 @@
+#include "lcd.h"
 #include "servo.h"
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_adc.h"
@@ -86,77 +87,7 @@ void SystemClock_Config(void) {
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_AFIO);
 }
 
-#define LCD_ADDRESS 0x27
-#define LCD_BACKLIGHT 0x08
-#define LCD_NOBACKLIGHT 0x00
 
-#define LCD_ENABLE 0x04
-#define LCD_COMMAND 0x00
-#define LCD_DATA 0x01
-
-
-
-void LCD_WriteNibble(uint8_t data, uint8_t control) {
-  uint8_t highnib = data & 0xF0;
-  uint8_t buffer[2];
-  buffer[0] = highnib | control | LCD_ENABLE | LCD_BACKLIGHT;
-  buffer[1] = highnib | control | LCD_BACKLIGHT;
-  i2c_write(LCD_ADDRESS, buffer, 2);
-}
-
-void LCD_SendCommand(uint8_t command) {
-  LCD_WriteNibble(command, LCD_COMMAND);
-  LCD_WriteNibble(command << 4, LCD_COMMAND);
-}
-
-void LCD_SendData(uint8_t data) {
-  LCD_WriteNibble(data, LCD_DATA);
-  LCD_WriteNibble(data << 4, LCD_DATA);
-}
-
-void LCD_Init(void) {
-  delay(1000); // Wait for LCD to power up
-
-  // Initialize LCD in 4-bit mode
-  LCD_WriteNibble(0x30, LCD_COMMAND);
-  delay(50);
-  LCD_WriteNibble(0x30, LCD_COMMAND);
-  delay(10);
-  LCD_WriteNibble(0x30, LCD_COMMAND);
-  delay(10);
-  LCD_WriteNibble(0x20, LCD_COMMAND); // Set to 4-bit mode
-
-  //// Function Set
-  LCD_SendCommand(0x28); // 4-bit mode, 2 lines, 5x8 font
-
-  //// Display Control
-  LCD_SendCommand(0x08); // Display off, cursor off, blink off
-
-  //// Clear Display
-  LCD_SendCommand(0x01); // Clear display
-
-  //// Entry Mode Set
-  LCD_SendCommand(0x06); // Increment cursor, no shift
-
-  //// Display On
-  LCD_SendCommand(0x0C); // Display on, cursor off, blink off
-
-  delay(50); // Wait for the LCD to process commands
-}
-
-void LCD_SetCursor(uint8_t col, uint8_t row) {
-  uint8_t row_offsets[] = {0x00, 0x40, 0x14, 0x54};
-  if (row > 1) {
-    row = 1; // We only support 2 rows: 0 and 1
-  }
-  LCD_SendCommand(0x80 | (col + row_offsets[row]));
-}
-
-void LCD_SendString(char *str) {
-  while (*str) {
-    LCD_SendData(*str++);
-  }
-}
 
 uint16_t Read_ADC(uint32_t channel) {
     LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, channel);
@@ -175,14 +106,14 @@ int main(void) {
   gpio_init();
   pwm_init();
   i2c_init();
-  LCD_Init();
+  lcd_init();
 
   set_servo_position(get_yaw(), sc_yaw);
-  LCD_SetCursor(0, 0);
-  LCD_SendString("YAW: 90");
-  LCD_SetCursor(0, 1);
-  LCD_SendString("PITCH: 90");
-  LCD_SetCursor(5, 0);
+  lcd_set_cursor(0, 0);
+  lcd_send_string("YAW: 90");
+  lcd_set_cursor(0, 1);
+  lcd_send_string("PITCH: 90");
+  lcd_set_cursor(5, 0);
 
   volatile static uint8_t gpiob13_state = 0;
   volatile static uint8_t gpiob14_state = 0;
@@ -197,10 +128,10 @@ int main(void) {
       int angle = (double)180 * perc;
       itos(pan_value, angle);
 
-      LCD_SetCursor(5, 0);
-      LCD_SendString("   ");
-      LCD_SetCursor(5, 0);
-      LCD_SendString(pan_value);
+      lcd_set_cursor(5, 0);
+      lcd_send_string("   ");
+      lcd_set_cursor(5, 0);
+      lcd_send_string(pan_value);
     }
     if (gpiob14_state == 1) {
       yaw_counterclockwise();
@@ -208,10 +139,10 @@ int main(void) {
           (double)(get_yaw() - POSITION_MIN) / (double)(POSITION_MAX - POSITION_MIN);
       int angle = (double)180 * perc;
       itos(pan_value, angle);
-      LCD_SetCursor(5, 0);
-      LCD_SendString("   ");
-      LCD_SetCursor(5, 0);
-      LCD_SendString(pan_value);
+      lcd_set_cursor(5, 0);
+      lcd_send_string("   ");
+      lcd_set_cursor(5, 0);
+      lcd_send_string(pan_value);
     }
   }
 }

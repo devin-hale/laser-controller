@@ -16,6 +16,7 @@ add_executable(${ELF}
 	src/utils.c
 	src/gpio.c
 	src/i2c.c
+	src/lcd.c
 )
 
 target_link_libraries(${ELF} ll)
