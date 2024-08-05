@@ -15,6 +15,7 @@ add_executable(${ELF}
 	src/servo.c
 	src/utils.c
 	src/gpio.c
+	src/i2c.c
 )
 
 target_link_libraries(${ELF} ll)
