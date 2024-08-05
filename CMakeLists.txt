@@ -14,6 +14,7 @@ add_executable(${ELF}
 	src/main.c
 	src/servo.c
 	src/utils.c
+	src/gpio.c
 )
 
 target_link_libraries(${ELF} ll)
