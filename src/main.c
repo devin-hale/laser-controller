@@ -4,20 +4,12 @@
 #include "stm32f1xx_ll_adc.h"
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_gpio.h"
-#include "stm32f1xx_ll_rcc.h"
-#include "stm32f1xx_ll_system.h"
 #include "stm32f1xx_ll_tim.h"
+#include "sys.h"
 #include "utils.h"
 #include "gpio.h"
 #include "i2c.h"
 #include <stdint.h>
-
-void systick_init(void) {
-  static int ms = 72000;
-  SysTick->LOAD = ms - 1;
-  SysTick->VAL = 0;
-  SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk;
-}
 
 void adc_init(void){
 	LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC1);
@@ -35,7 +27,6 @@ void adc_init(void){
         while (LL_ADC_IsCalibrationOnGoing(ADC1));
 	}
 }
-
 
 void pwm_init(void) {
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2);
@@ -59,36 +50,6 @@ void pwm_init(void) {
   LL_TIM_GenerateEvent_UPDATE(TIM2);
 }
 
-void SystemClock_Config(void) {
-  /* Set FLASH latency */
-  LL_FLASH_SetLatency(LL_FLASH_LATENCY_2);
-
-  /* Enable HSE */
-  LL_RCC_HSE_Enable();
-  while (LL_RCC_HSE_IsReady() != 1)
-    ;
-
-  /* Configure and enable PLL */
-  LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE_DIV_1, LL_RCC_PLL_MUL_9);
-  LL_RCC_PLL_Enable();
-  while (LL_RCC_PLL_IsReady() != 1)
-    ;
-
-  /* Set the SYSCLK source to PLL */
-  LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL);
-  while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL)
-    ;
-
-  /* Set AHB, APB1, and APB2 prescalers */
-  LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_1);
-  LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_2);
-  LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_1);
-
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_AFIO);
-}
-
-
-
 uint16_t Read_ADC(uint32_t channel) {
     LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, channel);
     LL_ADC_REG_StartConversionSWStart(ADC1);
@@ -101,8 +62,7 @@ uint16_t Read_ADC(uint32_t channel) {
 
 // --------
 int main(void) {
-  systick_init();
-  SystemClock_Config();
+  clock_init();
   gpio_init();
   pwm_init();
   i2c_init();
