@@ -1,5 +1,14 @@
 #include "utils.h"
 #include "stm32f103xb.h"
+#include "stm32f1xx_ll_gpio.h"
+
+void ErrorFlash(void) {
+  LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
+  delay(50);
+  LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
+  delay(50);
+}
+
 
 void delay(int ms) {
   for (int i = 0; i < ms; i++) {
