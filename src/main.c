@@ -19,12 +19,8 @@ int main(void) {
   lcd_init();
 
   set_servo_position(get_yaw(), sc_yaw);
-  lcd_set_cursor(0, 0);
-  lcd_send_string("YAW: 90");
-  lcd_set_cursor(0, 1);
-  lcd_send_string("PITCH: 90");
-  lcd_set_cursor(5, 0);
-
+  lcd_init_pitch_yaw();
+  
   volatile static uint8_t gpiob13_state = 0;
   volatile static uint8_t gpiob14_state = 0;
   static char pan_value[255];
@@ -38,10 +34,7 @@ int main(void) {
       int angle = (double)180 * perc;
       itos(pan_value, angle);
 
-      lcd_set_cursor(5, 0);
-      lcd_send_string("   ");
-      lcd_set_cursor(5, 0);
-      lcd_send_string(pan_value);
+      lcd_update_yaw(pan_value);
     }
     if (gpiob14_state == 1) {
       yaw_counterclockwise();
@@ -52,7 +45,8 @@ int main(void) {
       lcd_set_cursor(5, 0);
       lcd_send_string("   ");
       lcd_set_cursor(5, 0);
-      lcd_send_string(pan_value);
+
+      lcd_update_yaw(pan_value);
     }
   }
 }
