@@ -1,5 +1,6 @@
 #include "servo.h"
 #include "stm32f103xb.h"
+#include "stm32f1xx_ll_adc.h"
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_i2c.h"
@@ -39,6 +40,23 @@ void i2c_init(void) {
   LL_I2C_Enable(I2C1);
 }
 
+void adc_init(void){
+	LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC1);
+
+	LL_ADC_SetDataAlignment(ADC1, LL_ADC_DATA_ALIGN_RIGHT);
+	LL_ADC_SetSequencersScanMode(ADC1, LL_ADC_SEQ_SCAN_DISABLE);
+
+	LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_0, LL_ADC_SAMPLINGTIME_55CYCLES_5);
+	LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_1, LL_ADC_SAMPLINGTIME_55CYCLES_5);
+
+	LL_ADC_Enable(ADC1);
+
+	if (LL_ADC_IsEnabled(ADC1) == 0){
+		LL_ADC_StartCalibration(ADC1);
+        while (LL_ADC_IsCalibrationOnGoing(ADC1));
+	}
+}
+
 void gpio_init(void) {
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOB);
@@ -49,10 +67,16 @@ void gpio_init(void) {
   LL_GPIO_SetPinSpeed(GPIOA, LL_GPIO_PIN_0, LL_GPIO_SPEED_FREQ_HIGH);
   LL_GPIO_SetPinOutputType(GPIOA, LL_GPIO_PIN_0, LL_GPIO_OUTPUT_PUSHPULL);
 
+  // Pot 1 (uses channel 0)
+  LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_4, LL_GPIO_MODE_ANALOG);
+
   // Servo 2
   LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_1, LL_GPIO_MODE_ALTERNATE);
   LL_GPIO_SetPinSpeed(GPIOA, LL_GPIO_PIN_1, LL_GPIO_SPEED_FREQ_HIGH);
   LL_GPIO_SetPinOutputType(GPIOA, LL_GPIO_PIN_1, LL_GPIO_OUTPUT_PUSHPULL);
+
+  // Pot 2 (uses channel 1)
+  LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_5, LL_GPIO_MODE_ANALOG);
 
   // PC13 Onboard LED
   LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_13, LL_GPIO_MODE_OUTPUT);
@@ -63,17 +87,7 @@ void gpio_init(void) {
   LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_14, LL_GPIO_MODE_OUTPUT);
   LL_GPIO_SetPinSpeed(GPIOC, LL_GPIO_PIN_14, LL_GPIO_SPEED_FREQ_HIGH);
   GPIOC->ODR |= GPIO_ODR_ODR14;
-
-  // PC14 Pan Clockwise Button
-  LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_13, LL_GPIO_MODE_INPUT);
-  LL_GPIO_SetPinPull(GPIOB, LL_GPIO_PIN_13, LL_GPIO_PULL_DOWN);
-  LL_GPIO_SetPinSpeed(GPIOB, LL_GPIO_PIN_13, LL_GPIO_SPEED_FREQ_HIGH);
-
-  // PC15 Pan Counter clockwise button
-  LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_14, LL_GPIO_MODE_INPUT);
-  LL_GPIO_SetPinPull(GPIOB, LL_GPIO_PIN_14, LL_GPIO_PULL_DOWN);
-  LL_GPIO_SetPinSpeed(GPIOB, LL_GPIO_PIN_14, LL_GPIO_SPEED_FREQ_HIGH);
-
+  
   // Configure I2C SDA and SCL pins for 1602 LCD I2C Backpack
   LL_GPIO_InitTypeDef gpio_init;
   LL_GPIO_StructInit(&gpio_init);
@@ -250,6 +264,16 @@ void LCD_SendString(char *str) {
   while (*str) {
     LCD_SendData(*str++);
   }
+}
+
+uint16_t Read_ADC(uint32_t channel) {
+    LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_1, channel);
+    LL_ADC_REG_StartConversionSWStart(ADC1);
+
+    while (LL_ADC_IsActiveFlag_EOS(ADC1) == 0){};
+	LL_ADC_ClearFlag_EOS(ADC1);
+    uint16_t adc_value = LL_ADC_REG_ReadConversionData12(ADC1);
+    return adc_value;
 }
 
 // --------
