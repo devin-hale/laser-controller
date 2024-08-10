@@ -12,7 +12,7 @@ void gpio_init(void) {
   LL_GPIO_SetPinSpeed(GPIOA, LL_GPIO_PIN_0, LL_GPIO_SPEED_FREQ_HIGH);
   LL_GPIO_SetPinOutputType(GPIOA, LL_GPIO_PIN_0, LL_GPIO_OUTPUT_PUSHPULL);
 
-  // Pot 1 (uses channel 0)
+  // Pot 1 (uses channel 4)
   LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_4, LL_GPIO_MODE_ANALOG);
 
   // Servo 2
@@ -20,7 +20,7 @@ void gpio_init(void) {
   LL_GPIO_SetPinSpeed(GPIOA, LL_GPIO_PIN_1, LL_GPIO_SPEED_FREQ_HIGH);
   LL_GPIO_SetPinOutputType(GPIOA, LL_GPIO_PIN_1, LL_GPIO_OUTPUT_PUSHPULL);
 
-  // Pot 2 (uses channel 1)
+  // Pot 2 (uses channel 5)
   LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_5, LL_GPIO_MODE_ANALOG);
 
   // PC13 Onboard LED

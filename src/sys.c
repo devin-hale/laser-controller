@@ -9,13 +9,13 @@ void clock_init(void) {
 
   /* Enable HSE */
   LL_RCC_HSE_Enable();
-  while (LL_RCC_HSE_IsReady() != 1)
+  while (!LL_RCC_HSE_IsReady())
     ;
 
   /* Configure and enable PLL */
   LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE_DIV_1, LL_RCC_PLL_MUL_9);
   LL_RCC_PLL_Enable();
-  while (LL_RCC_PLL_IsReady() != 1)
+  while (!LL_RCC_PLL_IsReady())
     ;
 
   /* Set the SYSCLK source to PLL */
@@ -36,5 +36,7 @@ void clock_init(void) {
   SysTick->VAL = 0;
   SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk;
 
+  // ADC Clock
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC1);
+  LL_RCC_SetADCClockSource(LL_RCC_ADC_CLKSRC_PCLK2_DIV_6);
 }
-
