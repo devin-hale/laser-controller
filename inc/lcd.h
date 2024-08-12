@@ -16,3 +16,4 @@ void lcd_send_string(char *str);
 
 void lcd_init_pitch_yaw(void);
 void lcd_update_yaw(char *yaw_angle);
+void lcd_update_pitch(char *pitch_angle);

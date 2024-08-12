@@ -66,26 +66,27 @@ void lcd_send_string(char *str) {
 
 #define YAW_ROW 0
 #define PITCH_ROW 1
-#define VALUE_START_POS 5
+#define YAW_START_POS 5
+#define PITCH_START_POS 7
 static char *blank_value = "   ";
 
 void lcd_init_pitch_yaw(void) {
   lcd_set_cursor(0, YAW_ROW);
-  lcd_send_string("YAW: 90");
+  lcd_send_string("YAW:");
   lcd_set_cursor(0, PITCH_ROW);
-  lcd_send_string("PITCH: 90");
+  lcd_send_string("PITCH:");
 }
 
 void lcd_update_yaw(char *yaw_angle) {
-  lcd_set_cursor(VALUE_START_POS, YAW_ROW);
+  lcd_set_cursor(YAW_START_POS, YAW_ROW);
   lcd_send_string(blank_value);
-  lcd_set_cursor(VALUE_START_POS, YAW_ROW);
+  lcd_set_cursor(YAW_START_POS, YAW_ROW);
   lcd_send_string(yaw_angle);
 }
 
 void lcd_update_pitch(char *pitch_angle) {
-  lcd_set_cursor(VALUE_START_POS, PITCH_ROW);
+  lcd_set_cursor(PITCH_START_POS, PITCH_ROW);
   lcd_send_string(blank_value);
-  lcd_set_cursor(VALUE_START_POS, PITCH_ROW);
+  lcd_set_cursor(PITCH_START_POS, PITCH_ROW);
   lcd_send_string(pitch_angle);
 }
