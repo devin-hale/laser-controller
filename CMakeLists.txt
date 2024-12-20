@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.31)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(rf_laser)
 
 set(ELF ${PROJECT_NAME}.elf)
 
 enable_language(ASM)
-set(STARTUP_FILE "startup_stm32f103xb.c")
+set(STARTUP_FILE "startup.c")
 
 add_subdirectory(stm32f1-ll)
 
@@ -29,7 +29,7 @@ set_target_properties(
   ${ELF}
   PROPERTIES
   LINK_FLAGS
-  "-T${PROJECT_SOURCE_DIR}/STM32F103RBTx_FLASH.ld \
+  "-T${PROJECT_SOURCE_DIR}/linker.ld \
    -mthumb -mcpu=cortex-m3 \
    -Wl,--gc-sections \
    -Wl,-Map=${PROJECT_NAME}.map")

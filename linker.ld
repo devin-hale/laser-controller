@@ -19,7 +19,7 @@ SECTIONS
 	.data : {
         . = ALIGN(4);
         _sdata = .;
-		_la_data = LOADADDR(.data); /* Load address of .data in FLASH */
+		_la_data = LOADADDR(.data);
         *(.data*)
         . = ALIGN(4);
         _edata = .;
@@ -36,6 +36,6 @@ SECTIONS
     {
         . = ALIGN(8);
         _estack = .;
-        . += 4K;  /* Allocate 4K for stack */
+        . += 4K;
     } >ram
 }
