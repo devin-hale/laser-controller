@@ -1,29 +1,52 @@
+// Entry point at program/board start, same for every MCU
+ENTRY(reset_handler);
 
+// Define memory bounds.
+// ORIGIN = start of memory address
+// Length = Size, ex 64K == 64 Kilobytes
+// ----
+// Sourced from stm32-base
 MEMORY
 {
-    rom (rx) : ORIGIN = 0x08000000, LENGTH = 64K
-    ram (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
+    FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 64K
+    SRAM (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
 }
-PROVIDE(_stack = ORIGIN(ram) + LENGTH(ram));
 
-EXTERN(vector_table);
-ENTRY(reset_handler);
+// Define references to top of stack, and the interrupt vector table
+PROVIDE(SRAM_END = ORIGIN(SRAM) + LENGTH(SRAM));
 
 SECTIONS
 {
-    .text : {
-        *(.vectors)
-        *(.text*)
+	.vector_table :
+	{
+		KEEP(*(.vector_table))
+	} >FLASH
+
+	// Data that is loaded directly into flash
+    .text : 
+	{
+		. = ALIGN(4);
+
+		*(.text)
+		*(.rodata)
+		
+		. = ALIGN(4);
+		_etext = .;
+    } >FLASH
+
+	// Data that is loaded from flash -> ram on program start
+	.data : 
+	{
         . = ALIGN(4);
-    } >rom
-	.data : {
-        . = ALIGN(4);
-        _sdata = .;
 		_la_data = LOADADDR(.data);
+
+        _sdata = .;
         *(.data*)
+
         . = ALIGN(4);
         _edata = .;
-    } >ram AT>rom
+    } >SRAM AT> FLASH
+
     .bss : {
         . = ALIGN(4);
         _sbss = .;
@@ -31,11 +54,12 @@ SECTIONS
         *(COMMON)
         . = ALIGN(4);
         _ebss = .;
-    } >ram
+    } >SRAM
+
 	.stack (NOLOAD) :
     {
         . = ALIGN(8);
         _estack = .;
         . += 4K;
-    } >ram
+    } >SRAM
 }
