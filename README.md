@@ -18,6 +18,7 @@ Mounted laser pointer with pot controlled yaw/pitch. Laser can be toggled on/off
 
 - [STM32 Blue Pill Details](https://stm32-base.org/boards/STM32F103C8T6-Blue-Pill.html)
 - [STM32F1 Reference Manual](./resources/stm32f1_reference_manual.pdf)
+- [STM32F1 Programming Manual](./resources/pm0056-stm32f10xxx20xxx21xxxl1xxxx-cortexm3-programming-manual-stmicroelectronics.pdf)
 - [I2C LCD Datasheet](./resources/I2C_1602_LCD.pdf)
 - [Servo Motor Datasheet](./resources/sg90_datasheet.pdf)
 
